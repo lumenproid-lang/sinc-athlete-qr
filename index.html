@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SINC Athlete QR - Petugas</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:linear-gradient(135deg,#071426,#101d3a,#162d55);color:#111827}
+.wrap{max-width:560px;margin:auto;padding:16px}
+.card{background:#fff;padding:20px;border-radius:20px;margin-bottom:16px;box-shadow:0 8px 24px #0003}
+h1{margin:0;font-size:24px} h3{margin-bottom:8px}
+input,select,button{width:100%;padding:14px;margin-top:8px;border-radius:12px;font-size:16px;box-sizing:border-box}
+input,select{border:1px solid #ddd}button{border:0;font-weight:bold;cursor:pointer}
+.p{background:#111827;color:white}.g{background:#16a34a;color:white}.r{background:#dc2626;color:white}
+.o{background:#d97706;color:white}.b{background:#2563eb;color:white}.v{background:#7c3aed;color:white}.m{background:#e5e7eb;color:#111827}
+.hide{display:none}.status{padding:14px;border-radius:12px;margin-top:10px;font-weight:bold}
+.ok{background:#dcfce7;color:#166534}.no{background:#fee2e2;color:#991b1b}.warn{background:#fef3c7;color:#92400e}
+.msg{padding:12px;border-radius:12px;margin-bottom:12px;font-weight:bold;background:#dbeafe;color:#1e40af}
+.name{font-size:26px;font-weight:bold}
+.small{font-size:13px;color:#6b7280}
+#reader{margin-top:10px}
+button:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🏆 SINC Athlete QR</h1>
+    <p>Panel Petugas</p>
+    <input id="petugas" placeholder="Nama petugas" autocomplete="name">
+    <button class="p" onclick="start()">📷 MULAI SCAN QR</button>
+    <button id="stop" class="m hide" onclick="stop()">✖ TUTUP SCANNER</button>
+    <div id="reader"></div>
+    <div class="small">Mode ini memakai Google Apps Script langsung, bukan JSONP.</div>
+  </div>
+
+  <div id="card" class="card hide">
+    <div id="msg" class="msg">Data atlet ditemukan.</div>
+    <div id="nama" class="name"></div>
+    <p>ID: <span id="id"></span></p>
+    <p>Kontingen: <span id="kontingen"></span></p>
+    <p>Kategori: <span id="kategori"></span></p>
+    <p>Gender: <span id="gender"></span></p>
+
+    <h3>🏆 Verifikasi Juara</h3>
+    <select id="juara">
+      <option value="">Pilih...</option>
+      <option>JUARA 1</option><option>JUARA 2</option><option>JUARA 3</option>
+      <option>JUARA 3 BERSAMA</option><option>FINALIS</option><option>TIDAK JUARA</option>
+    </select>
+    <button class="v" onclick="saveJuara()">🏆 SIMPAN STATUS JUARA</button>
+
+    <h3>⚖️ Verifikasi Timbang</h3>
+    <input id="berat" inputmode="decimal" placeholder="Hasil timbang (kg), opsional">
+    <button class="g" onclick="saveTimbang('LOLOS VERIFIKASI TIMBANG')">🟢 LOLOS VERIFIKASI TIMBANG</button>
+    <button class="r" onclick="saveTimbang('TIDAK LOLOS VERIFIKASI TIMBANG')">🔴 TIDAK LOLOS VERIFIKASI TIMBANG</button>
+    <div id="timbang" class="status warn">⚖️ BELUM DIVERIFIKASI</div>
+
+    <h3>🥇📜 Award</h3>
+    <div id="medali" class="status no">🥇 MEDALI: BELUM DIAMBIL</div>
+    <button id="bm" class="o" onclick="award('medali')">🥇 SERAHKAN MEDALI</button>
+    <div id="piagam" class="status no">📜 PIAGAM: BELUM DIAMBIL</div>
+    <button id="bp" class="b" onclick="award('piagam')">📜 SERAHKAN PIAGAM</button>
+    <button class="m" onclick="resetA()">🔄 SCAN ATLET BERIKUTNYA</button>
+  </div>
+</div>
+
+<script>
+let scanner=null, a=null;
+
+function petugas(){
+  const x=document.getElementById('petugas').value.trim();
+  if(!x){alert('Masukkan nama petugas.');return '';}
+  return x;
+}
+
+function start(){
+  if(!petugas() || scanner) return;
+  scanner=new Html5Qrcode('reader');
+  document.getElementById('stop').classList.remove('hide');
+
+  scanner.start(
+    {facingMode:'environment'},
+    {fps:10,qrbox:250},
+    text=>{stop(); lookup(text);},
+    ()=>{}
+  ).catch(e=>{
+    scanner=null;
+    document.getElementById('stop').classList.add('hide');
+    alert('Kamera gagal dibuka: '+e);
+  });
+}
+
+function stop(){
+  if(scanner){
+    const x=scanner; scanner=null;
+    x.stop().then(()=>{try{x.clear()}catch(e){}}).catch(()=>{});
+  }
+  document.getElementById('stop').classList.add('hide');
+}
+
+function callServer(fn,args,done){
+  google.script.run
+    .withSuccessHandler(done)
+    .withFailureHandler(e=>done({success:false,error:e&&e.message?e.message:String(e)}))
+    [fn](...args);
+}
+
+function lookup(qr){
+  setBusy(true);
+  callServer('lookupAtlet',[qr,''],d=>{
+    setBusy(false);
+    if(!d || !d.success) return alert(d&&d.error?d.error:'Data atlet tidak ditemukan.');
+    a=d.athlete; render();
+    document.getElementById('card').classList.remove('hide');
+    document.getElementById('card').scrollIntoView({behavior:'smooth'});
+  });
+}
+
+function render(){
+  for(const [id,k] of [['nama','nama'],['id','idAtlet'],['kontingen','kontingen'],['kategori','kategori'],['gender','jenisKelamin']])
+    document.getElementById(id).textContent=a[k]||'-';
+
+  const allowed=['JUARA 1','JUARA 2','JUARA 3','JUARA 3 BERSAMA','FINALIS','TIDAK JUARA'];
+  const j=String(a.statusJuara||'').toUpperCase();
+  document.getElementById('juara').value=allowed.includes(j)?j:'';
+
+  document.getElementById('berat').value=a.hasilTimbang||'';
+  const t=String(a.statusTimbang||'BELUM DIVERIFIKASI');
+  const el=document.getElementById('timbang');
+  el.textContent='⚖️ '+t;
+  el.className='status '+(t.toUpperCase().includes('TIDAK')?'no':t.toUpperCase().includes('LOLOS')?'ok':'warn');
+
+  const med=String(a.medali||'').toUpperCase()==='SUDAH';
+  const pia=String(a.piagam||'').toUpperCase()==='SUDAH';
+  document.getElementById('medali').textContent='🥇 MEDALI: '+(med?'SUDAH DIAMBIL':'BELUM DIAMBIL');
+  document.getElementById('piagam').textContent='📜 PIAGAM: '+(pia?'SUDAH DIAMBIL':'BELUM DIAMBIL');
+  document.getElementById('bm').disabled=med;
+  document.getElementById('bp').disabled=pia;
+}
+
+function saveJuara(){
+  const p=petugas(), j=document.getElementById('juara').value;
+  if(!p||!j)return alert('Pilih status juara.');
+  if(!confirm('Simpan '+j+' untuk '+a.nama+'?'))return;
+  callServer('updateJuara',[a.qrUrl,j,p,'SINC-TOMOHON-2026'],d=>{
+    if(!d.success)return alert(d.error);
+    a.statusJuara=j;render();alert('Status juara tersimpan.');
+  });
+}
+
+function saveTimbang(st){
+  const p=petugas(); if(!p)return;
+  if(!confirm('Simpan hasil: '+st+'?'))return;
+  const b=document.getElementById('berat').value.trim();
+  callServer('updateTimbang',[a.qrUrl,b,st,p,'SINC-TOMOHON-2026'],d=>{
+    if(!d.success)return alert(d.error);
+    a.hasilTimbang=d.berat;a.statusTimbang=st;render();
+    alert('Verifikasi timbang tersimpan.');
+  });
+}
+
+function award(type){
+  const p=petugas(); if(!p)return;
+  if(String(type==='medali'?a.medali:a.piagam).toUpperCase()==='SUDAH')
+    return alert('Sudah diambil.');
+  if(!confirm('Konfirmasi pengambilan?'))return;
+  const fn=type==='medali'?'updateMedali':'updatePiagam';
+  callServer(fn,[a.qrUrl,p,'SINC-TOMOHON-2026'],d=>{
+    if(!d.success)return alert(d.error);
+    a[type]='SUDAH';render();alert('Berhasil dicatat.');
+  });
+}
+
+function resetA(){
+  a=null;
+  document.getElementById('card').classList.add('hide');
+  document.getElementById('reader').innerHTML='';
+  window.scrollTo(0,0);
+}
+
+function setBusy(b){
+  document.querySelectorAll('button').forEach(x=>x.disabled=b);
+  if(!b)render();
+}
+</script>
+</body>
+</html>
