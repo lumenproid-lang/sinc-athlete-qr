@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="public-version" content="petugas-v12-jsonp-stable">
+<title>SINC Athlete QR - Petugas</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+body{font-family:Arial;margin:0;background:#f3f4f6;color:#111827}
+.wrap{max-width:560px;margin:auto;padding:16px}
+.card{background:#fff;padding:20px;border-radius:20px;margin-bottom:16px;box-shadow:0 4px 15px #0001}
+input,select,button{width:100%;padding:14px;margin-top:8px;border-radius:12px;font-size:16px;box-sizing:border-box}
+input,select{border:1px solid #ddd}
+button{border:0;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.p{background:#111827;color:white}.g{background:#16a34a;color:white}.r{background:#dc2626;color:white}.o{background:#d97706;color:white}.b{background:#2563eb;color:white}.v{background:#7c3aed;color:white}.m{background:#e5e7eb;color:#111827}.printing{background:#0f766e;color:#fff}
+.hide{display:none}.status{padding:14px;border-radius:12px;margin-top:10px;font-weight:bold}
+.ok{background:#dcfce7;color:#166534}.no{background:#fee2e2;color:#991b1b}.warn{background:#fef3c7;color:#92400e}
+.msg{padding:12px;border-radius:12px;margin-bottom:12px;font-weight:bold}.name{font-size:26px;font-weight:bold}
+.certificate-box{margin-top:18px;padding:14px;border-radius:14px;background:#f8fafc;border:1px solid #e5e7eb}
+.cert-number{font-size:20px;font-weight:900;margin-top:6px;word-break:break-word}
+.debug{font-size:12px;color:#6b7280;margin-top:10px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="card">
+<h1>🏆 SINC Athlete QR</h1>
+<p>Panel Petugas</p>
+<input id="petugas" placeholder="Nama petugas" autocomplete="name">
+<button class="p" onclick="start()">📷 MULAI SCAN QR</button>
+<button id="stop" class="m hide" onclick="stopScanner()">✖ TUTUP SCANNER</button>
+<div id="reader"></div>
+</div>
+
+<div id="card" class="card hide">
+<div id="msg" class="msg"></div>
+<div id="nama" class="name"></div>
+<p>ID: <span id="id"></span></p>
+<p>Kontingen: <span id="kontingen"></span></p>
+<p>Kategori: <span id="kategori"></span></p>
+<p>Gender: <span id="gender"></span></p>
+
+<h3>🏆 Verifikasi Juara</h3>
+<select id="juara">
+<option value="">Pilih...</option>
+<option>JUARA 1</option>
+<option>JUARA 2</option>
+<option>JUARA 3</option>
+<option>JUARA 3 BERSAMA</option>
+<option>FINALIS</option>
+<option>TIDAK JUARA</option>
+</select>
+<button class="v" onclick="saveJuara()">🏆 SIMPAN STATUS JUARA</button>
+
+<h3>⚖️ Verifikasi Timbang</h3>
+<input id="berat" inputmode="decimal" placeholder="Hasil timbang (kg), opsional">
+<button class="g" onclick="saveTimbang('LOLOS VERIFIKASI TIMBANG')">🟢 LOLOS VERIFIKASI TIMBANG</button>
+<button class="r" onclick="saveTimbang('TIDAK LOLOS VERIFIKASI TIMBANG')">🔴 TIDAK LOLOS VERIFIKASI TIMBANG</button>
+<div id="timbang" class="status warn">⚖️ BELUM DIVERIFIKASI</div>
+
+<h3>🥇📜 Award</h3>
+<div id="medali" class="status no">🥇 MEDALI: BELUM DIAMBIL</div>
+<button id="bm" class="o" onclick="award('medali')">🥇 SERAHKAN MEDALI</button>
+<div id="piagam" class="status no">📜 PIAGAM: BELUM DIAMBIL</div>
+<button id="bp" class="b" onclick="award('piagam')">📜 SERAHKAN PIAGAM</button>
+
+<div class="certificate-box">
+<h3 style="margin:0">📜 Sertifikat</h3>
+<div>Nomor Sertifikat:</div>
+<div id="nomorSertifikat" class="cert-number">BELUM DIBUAT</div>
+<button id="bc" class="printing" onclick="printCertificate()">🖨️ CETAK SERTIFIKAT</button>
+</div>
+
+<button class="m" onclick="resetA()">🔄 SCAN ATLET BERIKUTNYA</button>
+</div>
+</div>
+
+<script>
+/*
+  API SAMA DENGAN VERSI YANG SUDAH TERBUKTI BERHASIL.
+  Jangan ganti URL ini kecuali deployment Apps Script berubah.
+*/
+const API='https://script.google.com/macros/s/AKfycbz2Gqo1Yhud50ODwXcoQokzEi3cF484EiTSz9FPp9JhtSiHBRZybTYKvsQsavDqAUGtwQ/exec';
+const TOKEN='SINC-TOMOHON-2026';
+
+let scanner=null;
+let a=null;
+let apiBusy=false;
+
+function petugas(){
+  const x=document.getElementById('petugas').value.trim();
+  if(!x)alert('Masukkan nama petugas.');
+  return x;
+}
+
+function start(){
+  if(!petugas())return;
+  if(scanner)return;
+
+  scanner=new Html5Qrcode('reader');
+  document.getElementById('stop').classList.remove('hide');
+
+  scanner.start(
+    {facingMode:'environment'},
+    {fps:10,qrbox:250},
+    text=>{
+      stopScanner();
+      lookup(text);
+    },
+    ()=>{}
+  ).catch(e=>{
+    scanner=null;
+    document.getElementById('stop').classList.add('hide');
+    alert('Kamera gagal dibuka: '+(e&&e.message?e.message:e));
+  });
+}
+
+function stopScanner(){
+  if(scanner){
+    const x=scanner;
+    scanner=null;
+    x.stop().then(()=>{
+      try{x.clear()}catch(e){}
+    }).catch(()=>{});
+  }
+  document.getElementById('stop').classList.add('hide');
+}
+
+/*
+  JSONP yang stabil untuk Apps Script:
+  - callback unik
+  - cache-busting
+  - timeout
+  - tidak memakai fetch/CORS
+  - response langsung diproses oleh fungsi callback
+*/
+function api(action,params,callback){
+  if(apiBusy){
+    callback({success:false,error:'Permintaan sebelumnya masih diproses.'});
+    return;
+  }
+
+  apiBusy=true;
+
+  const callbackName='sinc_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const script=document.createElement('script');
+  let finished=false;
+
+  function finish(data){
+    if(finished)return;
+    finished=true;
+    apiBusy=false;
+    clearTimeout(timer);
+    try{delete window[callbackName]}catch(e){}
+    try{script.remove()}catch(e){}
+    callback(data);
+  }
+
+  window[callbackName]=function(data){
+    finish(data);
+  };
+
+  const q=new URLSearchParams();
+  q.set('action',action);
+  q.set('callback',callbackName);
+
+  Object.keys(params||{}).forEach(k=>{
+    const v=params[k];
+    if(v!==undefined && v!==null)q.set(k,String(v));
+  });
+
+  // Hindari cache browser/redirect lama.
+  q.set('_ts',String(Date.now()));
+
+  script.src=API+'?'+q.toString();
+  script.async=true;
+
+  script.onload=function(){
+    /*
+      Apps Script bisa melakukan redirect sebelum script selesai dieksekusi.
+      Jika callback sudah dipanggil, finish() sudah bekerja.
+      Kalau belum, beri waktu sedikit sebelum timeout.
+    */
+  };
+
+  script.onerror=function(){
+    finish({
+      success:false,
+      error:'Request API gagal dimuat oleh browser desktop. Endpoint Apps Script dapat diakses, tetapi callback lookup tidak diterima.'
+    });
+  };
+
+  document.head.appendChild(script);
+
+  const timer=setTimeout(()=>{
+    finish({
+      success:false,
+      error:'API tidak mengirim respons dalam 15 detik. Coba Ctrl+Shift+R lalu scan lagi.'
+    });
+  },15000);
+}
+
+function lookup(qr){
+  showLoading(true);
+
+  api('lookup',{qr:qr},d=>{
+    showLoading(false);
+
+    if(!d||!d.success){
+      alert(d&&d.error?d.error:'Data atlet tidak ditemukan.');
+      return;
+    }
+
+    a=d.athlete;
+    render();
+    document.getElementById('card').classList.remove('hide');
+    document.getElementById('card').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+function showLoading(on){
+  const el=document.getElementById('msg');
+  if(on){
+    document.getElementById('card').classList.remove('hide');
+    el.textContent='⏳ Mengambil data atlet...';
+    el.style.background='#e0f2fe';
+    el.style.color='#075985';
+  }else{
+    el.textContent='';
+    el.style.background='';
+    el.style.color='';
+  }
+}
+
+function render(){
+  for(const [id,k] of [
+    ['nama','nama'],
+    ['id','idAtlet'],
+    ['kontingen','kontingen'],
+    ['kategori','kategori'],
+    ['gender','jenisKelamin']
+  ]){
+    document.getElementById(id).textContent=a[k]||'-';
+  }
+
+  document.getElementById('msg').textContent='✅ DATA ATLET BERHASIL DIMUAT';
+
+  const allowed=[
+    'JUARA 1','JUARA 2','JUARA 3',
+    'JUARA 3 BERSAMA','FINALIS','TIDAK JUARA'
+  ];
+
+  document.getElementById('juara').value=
+    allowed.includes(String(a.statusJuara||'').toUpperCase())
+    ? String(a.statusJuara).toUpperCase()
+    :'';
+
+  document.getElementById('berat').value=a.hasilTimbang||'';
+
+  const ts=String(a.statusTimbang||'BELUM DIVERIFIKASI').toUpperCase();
+  document.getElementById('timbang').textContent='⚖️ '+ts;
+  document.getElementById('timbang').className='status '+
+    (ts.includes('TIDAK')?'no':ts.includes('LOLOS')?'ok':'warn');
+
+  document.getElementById('medali').textContent='🥇 MEDALI: '+
+    (String(a.medali||'').toUpperCase()==='SUDAH'?'SUDAH DIAMBIL':'BELUM DIAMBIL');
+
+  document.getElementById('piagam').textContent='📜 PIAGAM: '+
+    (String(a.piagam||'').toUpperCase()==='SUDAH'?'SUDAH DIAMBIL':'BELUM DIAMBIL');
+
+  document.getElementById('bm').disabled=String(a.medali||'').toUpperCase()==='SUDAH';
+  document.getElementById('bp').disabled=String(a.piagam||'').toUpperCase()==='SUDAH';
+
+  document.getElementById('nomorSertifikat').textContent=
+    a.nomorSertifikat||'BELUM DIBUAT';
+}
+
+function saveJuara(){
+  const p=petugas();
+  const j=document.getElementById('juara').value;
+  if(!p||!j)return alert('Pilih status juara.');
+  if(!confirm('Simpan '+j+' untuk '+a.nama+'?'))return;
+
+  api('juara',{
+    qr:a.qrUrl,
+    juara:j,
+    petugas:p,
+    token:TOKEN
+  },d=>{
+    if(!d.success)return alert(d.error);
+    a.statusJuara=j;
+    render();
+    alert('Status juara tersimpan.');
+  });
+}
+
+function saveTimbang(st){
+  const p=petugas();
+  if(!p)return;
+
+  if(!confirm('Simpan hasil: '+st+'?'))return;
+
+  api('timbang',{
+    qr:a.qrUrl,
+    berat:document.getElementById('berat').value.trim(),
+    statusTimbang:st,
+    petugas:p,
+    token:TOKEN
+  },d=>{
+    if(!d.success)return alert(d.error);
+    a.hasilTimbang=d.berat;
+    a.statusTimbang=st;
+    render();
+    alert('Verifikasi timbang tersimpan.');
+  });
+}
+
+function award(type){
+  const p=petugas();
+  if(!p)return;
+
+  const st=type==='medali'?a.medali:a.piagam;
+  if(String(st||'').toUpperCase()==='SUDAH')
+    return alert('Sudah diambil.');
+
+  if(!confirm('Konfirmasi pengambilan?'))return;
+
+  api(type,{
+    qr:a.qrUrl,
+    petugas:p,
+    token:TOKEN
+  },d=>{
+    if(!d.success)return alert(d.error);
+    a[type]='SUDAH';
+    render();
+    alert('Berhasil dicatat.');
+  });
+}
+
+/*
+  Nomor sertifikat tetap dibuat oleh Apps Script/database.
+*/
+function getCertificateNumber(){
+  return new Promise((resolve,reject)=>{
+    api('sertifikat',{
+      qr:a.qrUrl,
+      petugas:petugas(),
+      token:TOKEN
+    },d=>{
+      if(!d.success)
+        return reject(new Error(d.error||'Gagal membuat nomor sertifikat.'));
+
+      a.nomorSertifikat=d.nomorSertifikat||'';
+      resolve(d);
+    });
+  });
+}
+
+/*
+  Direct Print:
+  popup dibuka SEBELUM request API agar Chrome desktop tidak memblokirnya.
+*/
+async function printCertificate(){
+  const p=petugas();
+  if(!p)return;
+
+  const juara=String(a.statusJuara||'').toUpperCase();
+  if(!juara||juara==='BELUM DITENTUKAN'||juara==='TIDAK JUARA'){
+    alert('Sertifikat hanya dapat dicetak untuk atlet yang memiliki hasil juara.');
+    return;
+  }
+
+  const win=window.open('about:blank','_blank','width=900,height=900');
+
+  if(!win){
+    alert('Popup diblokir Chrome. Izinkan pop-up untuk situs ini lalu klik CETAK SERTIFIKAT lagi.');
+    return;
+  }
+
+  const btn=document.getElementById('bc');
+  const old=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='⏳ MENYIAPKAN CETAK...';
+
+  try{
+    win.document.open();
+    win.document.write('<!doctype html><html><body style="font-family:Arial;padding:40px">Menyiapkan cetakan...</body></html>');
+    win.document.close();
+
+    const data=await getCertificateNumber();
+    writePrintPage(win,data);
+  }catch(err){
+    try{
+      win.document.open();
+      win.document.write('<!doctype html><html><body style="font-family:Arial;padding:40px;color:#991b1b"><h3>Gagal menyiapkan sertifikat</h3><p>'+escapeHtml(err.message||err)+'</p></body></html>');
+      win.document.close();
+    }catch(e){}
+    alert(err.message||'Gagal menyiapkan sertifikat.');
+  }finally{
+    btn.disabled=false;
+    btn.textContent=old;
+  }
+}
+
+function escapeHtml(v){
+  return String(v??'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function writePrintPage(win,data){
+  const esc=escapeHtml;
+  const kategori=String(data.kategori||a.kategori||'').trim();
+  const gender=String(data.jenisKelamin||a.jenisKelamin||'').trim();
+
+  win.document.open();
+  win.document.write(`<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Sertifikat ${esc(data.nama||a.nama)}</title>
+<style>
+@page{size:A4 portrait;margin:0}
+html,body{margin:0;padding:0;width:210mm;height:297mm;background:#fff}
+body{font-family:Arial,Helvetica,sans-serif;position:relative}
+.page{position:relative;width:210mm;height:297mm;overflow:hidden}
+.t{position:absolute;margin:0;padding:0;white-space:nowrap;line-height:1}
+.nomor{left:80.45mm;top:127mm;font-size:13.3pt}
+.nama{left:0;top:143.5mm;width:210mm;text-align:center;font-size:24.5pt}
+.kontingen{left:0;top:151mm;width:210mm;text-align:center;font-size:12pt}
+.juara{left:0;top:166mm;width:210mm;text-align:center;font-size:27.6pt}
+.kategori{left:47mm;top:173mm;font-size:17.3pt}
+.gender{top:173mm;font-size:17.3pt}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="t nomor">${esc(data.nomorSertifikat||a.nomorSertifikat)}</div>
+<div class="t nama">${esc(data.nama||a.nama)}</div>
+<div class="t kontingen">${esc(data.kontingen||a.kontingen)}</div>
+<div class="t juara">${esc(data.juara||a.statusJuara)}</div>
+<div class="t kategori" id="kategori">${esc(kategori)}</div>
+<div class="t gender" id="gender">${esc(gender)}</div>
+</div>
+<script>
+window.addEventListener('load',function(){
+  const kategori=document.getElementById('kategori');
+  const gender=document.getElementById('gender');
+  const gap=4;
+  gender.style.left=(kategori.offsetLeft+kategori.offsetWidth+gap)+'px';
+  setTimeout(function(){
+    window.focus();
+    window.print();
+  },500);
+});
+window.addEventListener('afterprint',function(){
+  setTimeout(function(){window.close()},300);
+});
+<\/script>
+</body>
+</html>`);
+  win.document.close();
+}
+
+function resetA(){
+  a=null;
+  document.getElementById('card').classList.add('hide');
+  document.getElementById('nomorSertifikat').textContent='BELUM DIBUAT';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
