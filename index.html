@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SINC Athlete QR - Petugas</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+body{font-family:Arial;margin:0;background:#f3f4f6;color:#111827}
+.wrap{max-width:560px;margin:auto;padding:16px}
+.card{background:#fff;padding:20px;border-radius:20px;margin-bottom:16px;box-shadow:0 4px 15px #0001}
+input,select,button{width:100%;padding:14px;margin-top:8px;border-radius:12px;font-size:16px;box-sizing:border-box}
+input,select{border:1px solid #ddd}button{border:0;font-weight:bold}
+.p{background:#111827;color:white}.g{background:#16a34a;color:white}.r{background:#dc2626;color:white}
+.o{background:#d97706;color:white}.b{background:#2563eb;color:white}.v{background:#7c3aed;color:white}
+.m{background:#e5e7eb}.c{background:#0f766e;color:white}
+.hide{display:none}.status{padding:14px;border-radius:12px;margin-top:10px;font-weight:bold}
+.ok{background:#dcfce7;color:#166534}.no{background:#fee2e2;color:#991b1b}.warn{background:#fef3c7;color:#92400e}
+.msg{padding:12px;border-radius:12px;margin-bottom:12px;font-weight:bold}.name{font-size:26px;font-weight:bold}
+.cert-box{margin-top:12px;padding:14px;border:1px solid #d1d5db;border-radius:12px;background:#f8fafc}
+.cert-number{font-weight:900;color:#0f766e;font-size:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+<h1>🏆 SINC Athlete QR</h1>
+<p>Panel Petugas</p>
+<input id="petugas" placeholder="Nama petugas">
+<button class="p" onclick="start()">📷 MULAI SCAN QR</button>
+<button id="stop" class="m hide" onclick="stop()">✖ TUTUP SCANNER</button>
+<div id="reader"></div>
+</div>
+
+<div id="card" class="card hide">
+<div id="msg" class="msg"></div>
+<div id="nama" class="name"></div>
+<p>ID: <span id="id"></span></p>
+<p>Kontingen: <span id="kontingen"></span></p>
+<p>Kategori: <span id="kategori"></span></p>
+<p>Gender: <span id="gender"></span></p>
+
+<h3>🏆 Verifikasi Juara</h3>
+<select id="juara">
+<option value="">Pilih...</option>
+<option>JUARA 1</option>
+<option>JUARA 2</option>
+<option>JUARA 3</option>
+<option>JUARA 3 BERSAMA</option>
+<option>FINALIS</option>
+<option>TIDAK JUARA</option>
+</select>
+<button class="v" onclick="saveJuara()">🏆 SIMPAN STATUS JUARA</button>
+
+<h3>⚖️ Verifikasi Timbang</h3>
+<input id="berat" inputmode="decimal" placeholder="Hasil timbang (kg), opsional">
+<button class="g" onclick="saveTimbang('LOLOS VERIFIKASI TIMBANG')">🟢 LOLOS VERIFIKASI TIMBANG</button>
+<button class="r" onclick="saveTimbang('TIDAK LOLOS VERIFIKASI TIMBANG')">🔴 TIDAK LOLOS VERIFIKASI TIMBANG</button>
+<div id="timbang" class="status warn">⚖️ BELUM DIVERIFIKASI</div>
+
+<h3>📜 Sertifikat</h3>
+<div class="cert-box">
+<div>Nomor Sertifikat</div>
+<div id="nomorSertifikat" class="cert-number">Belum dibuat</div>
+<button id="bc" class="c" onclick="printCertificate()">🖨️ CETAK SERTIFIKAT</button>
+</div>
+
+<h3>🥇📜 Award</h3>
+<div id="medali" class="status no">🥇 MEDALI: BELUM DIAMBIL</div>
+<button id="bm" class="o" onclick="award('medali')">🥇 SERAHKAN MEDALI</button>
+<div id="piagam" class="status no">📜 PIAGAM: BELUM DIAMBIL</div>
+<button id="bp" class="b" onclick="award('piagam')">📜 SERAHKAN PIAGAM</button>
+
+<button class="m" onclick="resetA()">🔄 SCAN ATLET BERIKUTNYA</button>
+</div>
+</div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbz2Gqo1Yhud50ODwXcoQokzEi3cF484EiTSz9FPp9JhtSiHBRZybTYKvsQsavDqAUGtwQ/exec';
+const TOKEN='SINC-TOMOHON-2026';
+
+// File template PDF harus diupload ke root repository GitHub Pages dengan nama ini.
+// 
+
+let s=null,a=null;
+
+function petugas(){
+  let x=document.getElementById('petugas').value.trim();
+  if(!x)alert('Masukkan nama petugas.');
+  return x;
+}
+
+function start(){
+  if(!petugas())return;
+  s=new Html5Qrcode('reader');
+  document.getElementById('stop').classList.remove('hide');
+  s.start({facingMode:'environment'},{fps:10,qrbox:250},t=>{
+    stop();lookup(t);
+  },()=>{}).catch(e=>alert('Kamera gagal dibuka: '+e));
+}
+
+function stop(){
+  if(s){
+    let x=s;s=null;
+    x.stop().then(()=>x.clear()).catch(()=>{});
+  }
+  document.getElementById('stop').classList.add('hide');
+}
+
+function api(action,p,cb){
+  let n='cb'+Date.now(),sc=document.createElement('script');
+  window[n]=d=>{
+    cb(d);
+    delete window[n];
+    sc.remove();
+  };
+  let q=new URLSearchParams({action,callback:n,...p});
+  sc.src=API+'?'+q;
+  sc.onerror=()=>{
+    cb({success:false,error:'Server tidak dapat dihubungi'});
+    delete window[n];
+    sc.remove();
+  };
+  document.body.appendChild(sc);
+}
+
+function lookup(qr){
+  api('lookup',{qr},d=>{
+    if(!d.success)return alert(d.error);
+    a=d.athlete;
+    render();
+    document.getElementById('card').classList.remove('hide');
+  });
+}
+
+function render(){
+  for(let [id,k] of [
+    ['nama','nama'],
+    ['id','idAtlet'],
+    ['kontingen','kontingen'],
+    ['kategori','kategori'],
+    ['gender','jenisKelamin']
+  ]) document.getElementById(id).textContent=a[k]||'-';
+
+  document.getElementById('juara').value=[
+    'JUARA 1','JUARA 2','JUARA 3','JUARA 3 BERSAMA','FINALIS','TIDAK JUARA'
+  ].includes(String(a.statusJuara).toUpperCase())
+    ? String(a.statusJuara).toUpperCase() : '';
+
+  document.getElementById('berat').value=a.hasilTimbang||'';
+  document.getElementById('timbang').textContent='⚖️ '+(a.statusTimbang||'BELUM DIVERIFIKASI');
+  document.getElementById('timbang').className='status '+
+    (String(a.statusTimbang||'').includes('TIDAK')?'no':
+     String(a.statusTimbang||'').includes('LOLOS')?'ok':'warn');
+
+  document.getElementById('medali').textContent='🥇 MEDALI: '+
+    (String(a.medali).toUpperCase()==='SUDAH'?'SUDAH DIAMBIL':'BELUM DIAMBIL');
+  document.getElementById('piagam').textContent='📜 PIAGAM: '+
+    (String(a.piagam).toUpperCase()==='SUDAH'?'SUDAH DIAMBIL':'BELUM DIAMBIL');
+
+  document.getElementById('bm').disabled=String(a.medali).toUpperCase()==='SUDAH';
+  document.getElementById('bp').disabled=String(a.piagam).toUpperCase()==='SUDAH';
+
+  document.getElementById('nomorSertifikat').textContent=a.nomorSertifikat||'Belum dibuat';
+}
+
+function saveJuara(){
+  let p=petugas(),j=document.getElementById('juara').value;
+  if(!p||!j)return alert('Pilih status juara.');
+  if(!confirm('Simpan '+j+' untuk '+a.nama+'?'))return;
+  api('juara',{qr:a.qrUrl,juara:j,petugas:p,token:TOKEN},d=>{
+    if(!d.success)return alert(d.error);
+    a.statusJuara=j;
+    render();
+    alert('Status juara tersimpan.');
+  });
+}
+
+function saveTimbang(st){
+  let p=petugas();
+  if(!p)return;
+  if(!confirm('Simpan hasil: '+st+'?'))return;
+  api('timbang',{
+    qr:a.qrUrl,
+    berat:document.getElementById('berat').value.trim(),
+    statusTimbang:st,
+    petugas:p,
+    token:TOKEN
+  },d=>{
+    if(!d.success)return alert(d.error);
+    a.hasilTimbang=d.berat;
+    a.statusTimbang=st;
+    render();
+    alert('Verifikasi timbang tersimpan.');
+  });
+}
+
+function award(type){
+  let p=petugas();
+  if(!p)return;
+  let st=type==='medali'?a.medali:a.piagam;
+  if(String(st).toUpperCase()==='SUDAH')return alert('Sudah diambil.');
+  if(!confirm('Konfirmasi pengambilan?'))return;
+  api(type,{qr:a.qrUrl,petugas:p,token:TOKEN},d=>{
+    if(!d.success)return alert(d.error);
+    a[type]='SUDAH';
+    render();
+    alert('Berhasil dicatat.');
+  });
+}
+
+function getCertificateNumber(){
+  return new Promise((resolve,reject)=>{
+    api('sertifikat',{qr:a.qrUrl,petugas:petugas(),token:TOKEN},d=>{
+      if(!d.success)return reject(new Error(d.error));
+      a.nomorSertifikat=d.nomorSertifikat;
+      resolve(d);
+    });
+  });
+}
+
+async function printCertificate(){
+  const p=petugas();
+  if(!p)return;
+
+  const juara=String(a.statusJuara||'').toUpperCase();
+  if(!juara || juara==='BELUM DITENTUKAN' || juara==='TIDAK JUARA'){
+    alert('Sertifikat hanya dapat dicetak untuk atlet yang memiliki hasil juara.');
+    return;
+  }
+
+  const btn=document.getElementById('bc');
+  const old=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='⏳ MENYIAPKAN SERTIFIKAT...';
+
+  try{
+    const data=await getCertificateNumber();
+    await generateCertificatePdf(data);
+  }catch(err){
+    alert(err.message||'Gagal membuat sertifikat.');
+  }finally{
+    btn.disabled=false;
+    btn.textContent=old;
+  }
+}
+
+async function generateCertificatePdf(data){
+  const PDFLib=window.PDFLib;
+  if(!PDFLib)throw new Error('Library PDF belum termuat. Refresh halaman lalu coba lagi.');
+
+  // OVERLAY ONLY: membuat PDF A4 BARU dari nol.
+  // Tidak menggunakan/membaca template PDF atau background apa pun.
+  const pdfDoc=await PDFLib.PDFDocument.create();
+  const page=pdfDoc.addPage([595.28,841.89]);
+  const font=await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+  const H=page.getHeight();
+
+  const POS={
+    nomor:{x:228.287,baselineTop:364.134,size:13.3},
+    nama:{centerX:297.0,baselineTop:412.619,size:24.5},
+    kontingen:{centerX:289.92,baselineTop:432.144,size:12.0},
+    juara:{centerX:297.0,baselineTop:468.917,size:27.6},
+    kategori:{x:133.278,baselineTop:490.393,size:17.3},
+    gender:{baselineTop:490.392,size:17.3}
+  };
+
+  function yFromTop(top){return H-top;}
+
+  function drawCentered(text,cx,top,size){
+    text=String(text||'').trim();
+    if(!text)return;
+    const width=font.widthOfTextAtSize(text,size);
+    page.drawText(text,{x:cx-width/2,y:yFromTop(top),size:size,font:font});
+  }
+
+  function drawLeft(text,x,top,size){
+    text=String(text||'').trim();
+    if(!text)return;
+    page.drawText(text,{x:x,y:yFromTop(top),size:size,font:font});
+  }
+
+  drawLeft(data.nomorSertifikat,POS.nomor.x,POS.nomor.baselineTop,POS.nomor.size);
+  drawCentered(data.nama,POS.nama.centerX,POS.nama.baselineTop,POS.nama.size);
+  drawCentered(data.kontingen,POS.kontingen.centerX,POS.kontingen.baselineTop,POS.kontingen.size);
+  drawCentered(data.juara,POS.juara.centerX,POS.juara.baselineTop,POS.juara.size);
+
+  const kategori=String(data.kategori||'').trim();
+  const gender=String(data.jenisKelamin||'').trim();
+
+  drawLeft(kategori,POS.kategori.x,POS.kategori.baselineTop,POS.kategori.size);
+
+  // JENIS KELAMIN dimulai setelah ujung kategori + tepat 1 spasi.
+  const kategoriWidth=font.widthOfTextAtSize(kategori,POS.kategori.size);
+  const spaceWidth=font.widthOfTextAtSize(' ',POS.kategori.size);
+  drawLeft(gender,POS.kategori.x+kategoriWidth+spaceWidth,POS.gender.baselineTop,POS.gender.size);
+
+  const outBytes=await pdfDoc.save();
+  const blob=new Blob([outBytes],{type:'application/pdf'});
+  const url=URL.createObjectURL(blob);
+
+  const safeName=String(data.nama||'ATLET').replace(/[\\/:*?"<>|]/g,'_');
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='Sertifikat_'+safeName+'.pdf';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+function resetA(){
+  a=null;
+  document.getElementById('card').classList.add('hide');
+  document.getElementById('nomorSertifikat').textContent='Belum dibuat';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
