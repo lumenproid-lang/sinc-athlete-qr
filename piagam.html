@@ -1,2 +1,820 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cetak Piagam TGM95</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 30px 15px;
+    background: #eef1f7;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #111827;
+}
+
+.container {
+    width: 100%;
+    max-width: 700px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+h1 {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 26px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 16px;
+    margin-bottom: 7px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #2563eb;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 14px;
+}
+
+.btn-search {
+    background: #111827;
+    color: white;
+}
+
+.btn-scan {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-print {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-next {
+    background: #7c3aed;
+    color: white;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.status {
+    margin-top: 20px;
+    padding: 14px;
+    border-radius: 10px;
+    display: none;
+}
+
+.status.info {
+    display: block;
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.status.success {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status.error {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.data-card {
+    display: none;
+    margin-top: 22px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+.data-label {
+    font-weight: bold;
+    color: #6b7280;
+}
+
+.data-value {
+    text-align: right;
+    font-weight: 600;
+}
+
+.print-area {
+    display: none;
+}
+
+.scanner {
+    display: none;
+    margin-top: 15px;
+    text-align: center;
+}
+
+#reader {
+    width: 100%;
+    max-width: 450px;
+    margin: auto;
+}
+
+.note {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* =========================
+   AREA PRINT
+   ========================= */
+
+@media print {
+
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm;
+        height: 297mm;
+        background: white !important;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .print-area,
+    .print-area * {
+        visibility: visible !important;
+    }
+
+    .print-area {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 210mm;
+        height: 297mm;
+        background: transparent !important;
+    }
+
+    .print-text {
+        position: absolute;
+        width: 180mm;
+        left: 15mm;
+        text-align: center;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #000;
+    }
+
+    /*
+      POSISI TEKS SERTIFIKAT
+
+      Nanti angka top bisa kita sesuaikan
+      setelah test print menggunakan HVS.
+    */
+
+    .print-nomor {
+        top: 35mm;
+        font-size: 11pt;
+    }
+
+    .print-nama {
+        top: 105mm;
+        font-size: 20pt;
+        font-weight: bold;
+    }
+
+    .print-kontingen {
+        top: 125mm;
+        font-size: 13pt;
+    }
+
+    .print-juara {
+        top: 160mm;
+        font-size: 18pt;
+        font-weight: bold;
+    }
+
+    .print-kategori {
+        top: 180mm;
+        font-size: 12pt;
+    }
+
+    .print-gender {
+        top: 195mm;
+        font-size: 12pt;
+    }
+}
+</style>
+
+<!-- QR Scanner -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>📜 CETAK PIAGAM</h1>
+
+        <div class="subtitle">
+            TGM95 / WTC Series 2
+        </div>
+
+        <label>Nomor Registrasi / ID Atlet</label>
+
+        <input
+            type="text"
+            id="athleteId"
+            placeholder="Contoh: CM-CC1EFFF7"
+            autocomplete="off"
+        >
+
+        <button
+            class="btn-search"
+            onclick="lookupAthlete()"
+        >
+            🔎 CARI ATLET
+        </button>
+
+        <button
+            class="btn-scan"
+            onclick="startScanner()"
+        >
+            📷 SCAN QR
+        </button>
+
+        <div id="scanner" class="scanner">
+            <div id="reader"></div>
+
+            <button
+                onclick="stopScanner()"
+                style="background:#dc2626;color:white;"
+            >
+                ✖ TUTUP SCANNER
+            </button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div id="dataCard" class="data-card">
+
+            <div class="data-row">
+                <div class="data-label">Nomor Registrasi</div>
+                <div class="data-value" id="dId">-</div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Nama</div>
+                <div class="data-value" id="dNama">-</div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Kontingen</div>
+                <div class="data-value" id="dKontingen">-</div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Juara</div>
+                <div class="data-value" id="dJuara">-</div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Kategori</div>
+                <div class="data-value" id="dKategori">-</div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Kategori Umur</div>
+                <div class="data-value" id="dUmur">-</div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Jenis Kelamin</div>
+                <div class="data-value" id="dGender">-</div>
+            </div>
+
+            <button
+                class="btn-print"
+                onclick="printPiagam()"
+            >
+                🖨️ PRINT PIAGAM
+            </button>
+
+            <button
+                class="btn-next"
+                onclick="nextAthlete()"
+            >
+                ➡️ ATLET BERIKUTNYA
+            </button>
+
+        </div>
+
+        <div class="note">
+            Template piagam sudah tercetak pada kertas.
+            Sistem ini hanya mencetak teks pada posisi yang ditentukan.
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     AREA KHUSUS PRINT
+     ========================= -->
+
+<div class="print-area">
+
+    <div
+        id="pNomor"
+        class="print-text print-nomor"
+    ></div>
+
+    <div
+        id="pNama"
+        class="print-text print-nama"
+    ></div>
+
+    <div
+        id="pKontingen"
+        class="print-text print-kontingen"
+    ></div>
+
+    <div
+        id="pJuara"
+        class="print-text print-juara"
+    ></div>
+
+    <div
+        id="pKategori"
+        class="print-text print-kategori"
+    ></div>
+
+    <div
+        id="pGender"
+        class="print-text print-gender"
+    ></div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   CONFIGURATION
+   ===================================================== */
+
 const API =
 'https://script.google.com/macros/s/AKfycbz2Gqo1Yhud50ODwXcoQokzEi3cF484EiTSz9FPp9JhtSiHBRZybTYKvsQsavDqAUGtwQ/exec';
+
+
+let currentAthlete = null;
+let html5QrCode = null;
+
+
+/* =====================================================
+   STATUS
+   ===================================================== */
+
+function showStatus(message, type) {
+
+    const status = document.getElementById('status');
+
+    status.className = 'status ' + type;
+    status.textContent = message;
+}
+
+
+/* =====================================================
+   LOOKUP ATHLETE
+   ===================================================== */
+
+async function lookupAthlete() {
+
+    const id =
+        document.getElementById('athleteId').value.trim();
+
+    if (!id) {
+
+        showStatus(
+            'Masukkan Nomor Registrasi / ID Atlet.',
+            'error'
+        );
+
+        return;
+    }
+
+    showStatus(
+        '⏳ Mengambil data atlet...',
+        'info'
+    );
+
+    document.getElementById('dataCard').style.display = 'none';
+
+    try {
+
+        const url =
+            API +
+            '?action=lookup&id=' +
+            encodeURIComponent(id);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                'HTTP ' + response.status
+            );
+        }
+
+        const data = await response.json();
+
+        console.log('API RESPONSE:', data);
+
+        if (!data.success) {
+
+            throw new Error(
+                data.error || 'Data atlet tidak ditemukan.'
+            );
+        }
+
+        if (!data.athlete) {
+
+            throw new Error(
+                'Data atlet kosong.'
+            );
+        }
+
+        currentAthlete = data.athlete;
+
+        displayAthlete(currentAthlete);
+
+        showStatus(
+            '✅ Data atlet ditemukan.',
+            'success'
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        showStatus(
+            '❌ Gagal mengambil data: ' +
+            error.message,
+            'error'
+        );
+
+    }
+}
+
+
+/* =====================================================
+   DISPLAY ATHLETE
+   ===================================================== */
+
+function displayAthlete(a) {
+
+    /*
+      Kita toleransi beberapa nama field
+      supaya tidak rusak jika nama kolom API berbeda.
+    */
+
+    const id =
+        a.idAtlet ||
+        a.nomorRegistrasi ||
+        a.id ||
+        '';
+
+    const nama =
+        a.nama ||
+        '';
+
+    const kontingen =
+        a.kontingen ||
+        '';
+
+    const juara =
+        a.statusJuara ||
+        a.juara ||
+        a.medali ||
+        '';
+
+    const kategori =
+        a.kategori ||
+        a.kategoriBerat ||
+        '';
+
+    /*
+      Kategori umur diambil dari API.
+      API seharusnya mengambilnya dari kolom U SINC.
+    */
+
+    const umur =
+        a.kategoriUmur ||
+        a.umur ||
+        a.kategoriUsia ||
+        '';
+
+    const gender =
+        a.jenisKelamin ||
+        a.gender ||
+        '';
+
+    document.getElementById('dId').textContent =
+        id || '-';
+
+    document.getElementById('dNama').textContent =
+        nama || '-';
+
+    document.getElementById('dKontingen').textContent =
+        kontingen || '-';
+
+    document.getElementById('dJuara').textContent =
+        juara || '-';
+
+    document.getElementById('dKategori').textContent =
+        kategori || '-';
+
+    document.getElementById('dUmur').textContent =
+        umur || '-';
+
+    document.getElementById('dGender').textContent =
+        gender || '-';
+
+    document.getElementById('dataCard').style.display =
+        'block';
+
+
+    /*
+      ISI AREA PRINT
+    */
+
+    document.getElementById('pNomor').textContent =
+        id;
+
+    document.getElementById('pNama').textContent =
+        nama;
+
+    document.getElementById('pKontingen').textContent =
+        kontingen;
+
+    document.getElementById('pJuara').textContent =
+        juara;
+
+    /*
+      SESUAI PERMINTAAN:
+      KATEGORI BERAT + 1 SPACE +
+      KATEGORI UMUR + 1 SPACE +
+      JENIS KELAMIN
+    */
+
+    document.getElementById('pKategori').textContent =
+        [kategori, umur, gender]
+        .filter(Boolean)
+        .join(' ');
+
+    /*
+      Gender sudah masuk ke baris kategori.
+      Baris gender dibuat kosong agar tidak
+      tercetak dua kali.
+    */
+
+    document.getElementById('pGender').textContent =
+        '';
+}
+
+
+/* =====================================================
+   PRINT
+   ===================================================== */
+
+function printPiagam() {
+
+    if (!currentAthlete) {
+
+        showStatus(
+            'Belum ada data atlet.',
+            'error'
+        );
+
+        return;
+    }
+
+    window.print();
+}
+
+
+/* =====================================================
+   NEXT ATHLETE
+   ===================================================== */
+
+function nextAthlete() {
+
+    currentAthlete = null;
+
+    document.getElementById('athleteId').value = '';
+
+    document.getElementById('dataCard').style.display =
+        'none';
+
+    document.getElementById('status').className =
+        'status';
+
+    document.getElementById('status').textContent =
+        '';
+
+    document.getElementById('athleteId').focus();
+}
+
+
+/* =====================================================
+   QR SCANNER
+   ===================================================== */
+
+function startScanner() {
+
+    document.getElementById('scanner').style.display =
+        'block';
+
+    showStatus(
+        '📷 Arahkan kamera ke QR Code ID Card.',
+        'info'
+    );
+
+    if (!html5QrCode) {
+
+        html5QrCode =
+            new Html5Qrcode('reader');
+    }
+
+    html5QrCode.start(
+
+        {
+            facingMode: 'environment'
+        },
+
+        {
+            fps: 10,
+            qrbox: {
+                width: 250,
+                height: 250
+            }
+        },
+
+        (decodedText) => {
+
+            console.log(
+                'QR TERBACA:',
+                decodedText
+            );
+
+            document.getElementById(
+                'athleteId'
+            ).value = decodedText;
+
+            stopScanner();
+
+            lookupAthlete();
+
+        },
+
+        (errorMessage) => {
+
+            /*
+              Jangan tampilkan error scanner
+              setiap frame karena akan memenuhi layar.
+            */
+
+        }
+
+    ).catch((error) => {
+
+        console.error(error);
+
+        showStatus(
+            '❌ Kamera tidak dapat digunakan: ' +
+            error,
+            'error'
+        );
+
+    });
+}
+
+
+/* =====================================================
+   STOP SCANNER
+   ===================================================== */
+
+async function stopScanner() {
+
+    if (html5QrCode) {
+
+        try {
+
+            await html5QrCode.stop();
+
+            html5QrCode.clear();
+
+        } catch (error) {
+
+            console.log(error);
+
+        }
+
+        html5QrCode = null;
+    }
+
+    document.getElementById('scanner').style.display =
+        'none';
+}
+
+
+/* =====================================================
+   ENTER KEY
+   ===================================================== */
+
+document
+    .getElementById('athleteId')
+    .addEventListener(
+        'keydown',
+        function(event) {
+
+            if (event.key === 'Enter') {
+
+                lookupAthlete();
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
