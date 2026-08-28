@@ -1,276 +1,251 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
-<title>Cetak Piagam TGM95</title>
-
+<title>Piagam Otomatis TGM95</title>
 
 <style>
 
-/* =====================================================
-   GLOBAL
-   ===================================================== */
+/* =========================================================
+   RESET
+========================================================= */
 
 * {
     box-sizing: border-box;
 }
 
+html,
 body {
     margin: 0;
-    padding: 30px 15px;
-
-    background: #eef1f7;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    color: #111827;
+    padding: 0;
+    background: #333;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-.container {
+
+/* =========================================================
+   PANEL KONTROL
+========================================================= */
+
+.control-panel {
     width: 100%;
     max-width: 700px;
-    margin: auto;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 5px 25px rgba(0,0,0,.25);
 }
 
-.card {
-    background: #ffffff;
-
-    border-radius: 18px;
-
-    padding: 28px;
-
-    box-shadow:
-        0 8px 25px rgba(0,0,0,0.08);
-}
-
-
-/* =====================================================
-   HEADER
-   ===================================================== */
-
-h1 {
-    margin: 0 0 8px;
-
+.control-panel h2 {
+    margin: 0 0 15px;
     text-align: center;
-
-    font-size: 26px;
 }
 
-.subtitle {
-    text-align: center;
-
-    color: #6b7280;
-
-    margin-bottom: 25px;
-
-    line-height: 1.5;
+.input-row {
+    display: flex;
+    gap: 10px;
 }
 
-
-/* =====================================================
-   FORM
-   ===================================================== */
-
-label {
-    display: block;
-
-    font-weight: bold;
-
-    margin-top: 16px;
-
-    margin-bottom: 7px;
-}
-
-input {
-    width: 100%;
-
-    padding: 14px;
-
-    border:
-        1px solid #d1d5db;
-
-    border-radius: 10px;
-
+.input-row input {
+    flex: 1;
+    height: 48px;
+    padding: 0 15px;
     font-size: 16px;
-
-    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 8px;
 }
-
-input:focus {
-    border-color: #2563eb;
-}
-
-
-/* =====================================================
-   BUTTON
-   ===================================================== */
 
 button {
-    width: 100%;
-
-    padding: 14px;
-
+    height: 48px;
+    padding: 0 20px;
     border: none;
-
-    border-radius: 10px;
-
-    font-size: 16px;
-
-    font-weight: bold;
-
+    border-radius: 8px;
     cursor: pointer;
-
-    margin-top: 14px;
+    font-size: 15px;
+    font-weight: bold;
 }
 
-button:disabled {
-    opacity: 0.5;
-
-    cursor: not-allowed;
-}
-
-.btn-search {
+.btn-cari {
     background: #111827;
-
-    color: white;
-}
-
-.btn-scan {
-    background: #2563eb;
-
     color: white;
 }
 
 .btn-print {
-    background: #16a34a;
-
+    background: #6d28d9;
     color: white;
+    width: 100%;
+    margin-top: 10px;
 }
 
-.btn-next {
-    background: #7c3aed;
-
+.btn-scan {
+    background: #2563eb;
     color: white;
+    width: 100%;
+    margin-top: 10px;
 }
-
-.btn-stop {
-    background: #dc2626;
-
-    color: white;
-}
-
-
-/* =====================================================
-   STATUS
-   ===================================================== */
 
 .status {
-    margin-top: 20px;
-
-    padding: 14px;
-
-    border-radius: 10px;
-
-    display: none;
-
-    line-height: 1.5;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    text-align: center;
+    font-size: 14px;
 }
 
-.status.info {
-    display: block;
-
-    background: #e0f2fe;
-
-    color: #075985;
-}
-
-.status.success {
-    display: block;
-
-    background: #dcfce7;
-
-    color: #166534;
-}
-
-.status.error {
-    display: block;
-
+.error {
     background: #fee2e2;
-
     color: #991b1b;
 }
 
-
-/* =====================================================
-   DATA CARD
-   ===================================================== */
-
-.data-card {
-
-    display: none;
-
-    margin-top: 22px;
-
-    border:
-        1px solid #e5e7eb;
-
-    border-radius: 14px;
-
-    padding: 20px;
+.success {
+    background: #dcfce7;
+    color: #166534;
 }
 
-.data-row {
 
+/* =========================================================
+   AREA PIAGAM
+========================================================= */
+
+.preview-wrapper {
     display: flex;
-
-    justify-content: space-between;
-
-    align-items: flex-start;
-
-    gap: 20px;
-
-    padding: 11px 0;
-
-    border-bottom:
-        1px solid #f0f0f0;
-}
-
-.data-row:last-child {
-    border-bottom: none;
-}
-
-.data-label {
-
-    font-weight: bold;
-
-    color: #6b7280;
-}
-
-.data-value {
-
-    text-align: right;
-
-    font-weight: 600;
-
-    max-width: 60%;
+    justify-content: center;
+    margin: 25px auto;
 }
 
 
-/* =====================================================
+/*
+   UKURAN FISIK A4
+   210mm x 297mm
+*/
+
+.piagam {
+    position: relative;
+
+    width: 210mm;
+    height: 297mm;
+
+    background-image: url("piagam.jpg");
+    background-size: 210mm 297mm;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    background-color: white;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.text {
+    position: absolute;
+
+    left: 105mm;
+
+    width: 180mm;
+
+    transform: translateX(-50%);
+
+    text-align: center;
+
+    color: #111;
+
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   NOMOR REGISTRASI
+   FIX:
+   X = 105mm
+   Y = 126mm
+--------------------------------------------------------- */
+
+.nomor {
+    top: 126mm;
+
+    font-size: 4mm;
+
+    font-weight: 400;
+}
+
+
+/* ---------------------------------------------------------
+   NAMA
+   FIX:
+   X = 105mm
+   Y = 141mm
+--------------------------------------------------------- */
+
+.nama {
+    top: 141mm;
+
+    font-size: 7mm;
+
+    font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   KONTINGEN
+   FIX:
+   X = 105mm
+   Y = 150mm
+--------------------------------------------------------- */
+
+.kontingen {
+    top: 150mm;
+
+    font-size: 4.5mm;
+
+    font-weight: 400;
+}
+
+
+/* ---------------------------------------------------------
+   JUARA
+   FIX:
+   X = 105mm
+   Y = 162mm
+--------------------------------------------------------- */
+
+.juara {
+    top: 162mm;
+
+    font-size: 7mm;
+
+    font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   KATEGORI
+   FIX:
+   X = 105mm
+   Y = 170mm
+--------------------------------------------------------- */
+
+.kategori {
+    top: 170mm;
+
+    font-size: 4.5mm;
+
+    font-weight: 400;
+}
+
+
+/* =========================================================
    SCANNER
-   ===================================================== */
+========================================================= */
 
-.scanner {
-
+#scannerContainer {
     display: none;
 
     margin-top: 15px;
@@ -279,593 +254,263 @@ button:disabled {
 }
 
 #reader {
-
     width: 100%;
-
-    max-width: 450px;
-
+    max-width: 500px;
     margin: auto;
 }
 
 
-/* =====================================================
-   NOTE
-   ===================================================== */
+/* =========================================================
+   DATA HASIL
+========================================================= */
 
-.note {
+.data-box {
+    margin-top: 15px;
+    padding: 15px;
 
-    margin-top: 20px;
+    background: #f8fafc;
 
-    font-size: 13px;
-
-    color: #6b7280;
-
-    text-align: center;
-
-    line-height: 1.5;
-}
-
-
-/* =====================================================
-   PRINT AREA
-   ===================================================== */
-
-.print-area {
+    border-radius: 10px;
 
     display: none;
 }
 
+.data-row {
+    display: flex;
 
-/* =====================================================
-   PRINT - A4 PORTRAIT
-   ===================================================== */
+    margin-bottom: 6px;
+}
+
+.data-label {
+    width: 140px;
+    font-weight: bold;
+}
+
+.data-value {
+    flex: 1;
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
 
 @media print {
 
-    @page {
-
-        size: A4 portrait;
-
-        margin: 0;
-    }
-
-
     html,
     body {
+        width: 210mm;
+        height: 297mm;
 
         margin: 0 !important;
-
         padding: 0 !important;
 
-        width: 210mm;
-
-        height: 297mm;
-
-        background: transparent !important;
+        background: white !important;
     }
 
-
-    /*
-       SEMBUNYIKAN UI
-    */
-
-    body * {
-
-        visibility: hidden !important;
-    }
-
-
-    /*
-       TAMPILKAN HANYA DATA PRINT
-    */
-
-    .print-area,
-    .print-area * {
-
-        visibility: visible !important;
-    }
-
-
-    /*
-       AREA A4
-    */
-
-    .print-area {
-
-        display: block !important;
-
-        position: absolute;
-
-        left: 0;
-
-        top: 0;
-
-        width: 210mm;
-
-        height: 297mm;
-
-        background: transparent !important;
-    }
-
-
-    /*
-       SEMUA TEKS CENTER
-       TERHADAP A4
-
-       Lebar A4 = 210mm
-       Titik tengah = 105mm
-    */
-
-    .print-text {
-
-        position: absolute;
-
-        left: 105mm;
-
-        transform:
-            translateX(-50%);
-
-        width: 180mm;
-
-        margin: 0;
-
-        padding: 0;
-
-        text-align: center;
-
-        font-family:
-            Arial,
-            Helvetica,
-            sans-serif;
-
-        color: #000000;
-
-        line-height: 1.1;
-    }
-
-
-    /* =================================================
-       1. NOMOR REGISTRASI
-       ================================================= */
-
-    .print-nomor {
-
-        /*
-           DARI HASIL FOTO:
-           nomor berada di area bawah deretan logo
-        */
-
-        top: 66mm;
-
-        font-size: 11pt;
-
-        font-weight: normal;
-
-        text-align: left;
-
-        width: 180mm;
-
-        left: 35mm;
-
-        transform: none;
-
-        white-space: nowrap;
-    }
-
-
-    /* =================================================
-       2. NAMA ATLET
-       ================================================= */
-
-    .print-nama {
-
-        /*
-           NAMA berada di atas area
-           SERTIFIKAT / PENGHARGAAN
-        */
-
-        top: 80mm;
-
-        font-size: 20pt;
-
-        font-weight: bold;
-
-        width: 180mm;
-
-        white-space: nowrap;
-    }
-
-
-    /* =================================================
-       3. KONTINGEN
-       ================================================= */
-
-    .print-kontingen {
-
-        /*
-           Kontingen tepat di bawah nama
-        */
-
-        top: 94mm;
-
-        font-size: 13pt;
-
-        font-weight: normal;
-
-        width: 180mm;
-
-        white-space: nowrap;
-    }
-
-
-    /* =================================================
-       4. JUARA
-       ================================================= */
-
-    .print-juara {
-
-        /*
-           Posisi pada area JUARA
-        */
-
-        top: 149mm;
-
-        font-size: 18pt;
-
-        font-weight: bold;
-
-        width: 180mm;
-
-        white-space: nowrap;
-    }
-
-
-    /* =================================================
-       5. KATEGORI
-       ================================================= */
-
-    .print-kategori {
-
-        /*
-           FORMAT:
-
-           KATEGORI BERAT
-           [spasi]
-           KATEGORI UMUR
-           [spasi]
-           JENIS KELAMIN
-        */
-
-        top: 163mm;
-
-        font-size: 12pt;
-
-        font-weight: normal;
-
-        width: 180mm;
-
-        white-space: nowrap;
-    }
-
-
-    /*
-       Gender tidak dicetak terpisah.
-       Sudah digabung ke kategori.
-    */
-
-    .print-gender {
-
+    .control-panel,
+    .data-box,
+    #scannerContainer {
         display: none !important;
     }
 
-}
+    .preview-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
 
-
-/* =====================================================
-   MOBILE
-   ===================================================== */
-
-@media screen and (max-width: 600px) {
-
-    body {
-        padding: 15px 10px;
+        display: block !important;
     }
 
-    .card {
-        padding: 20px;
+    .piagam {
+        display: block !important;
+
+        width: 210mm !important;
+        height: 297mm !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        page-break-after: avoid;
+        page-break-before: avoid;
+
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
-
-    .data-row {
-        flex-direction: column;
-
-        gap: 4px;
-    }
-
-    .data-value {
-        max-width: 100%;
-
-        text-align: left;
-    }
-
 }
 
 </style>
-
-
-<!-- =====================================================
-     QR SCANNER LIBRARY
-     ===================================================== -->
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 </head>
 
 
 <body>
 
 
-<!-- =====================================================
-     UI UTAMA
-     ===================================================== -->
+<!-- =======================================================
+     PANEL KONTROL
+======================================================= -->
 
-<div class="container">
+<div class="control-panel">
 
-    <div class="card">
+    <h2>🏆 PIAGAM TGM95</h2>
 
-
-        <h1>
-            📜 CETAK PIAGAM
-        </h1>
-
-
-        <div class="subtitle">
-
-            Taekwondo Garuda Muda 95
-
-            <br>
-
-            Walikota Tomohon Cup Series II 2026
-
-        </div>
-
-
-        <!-- =============================================
-             PETUGAS
-             ============================================= -->
-
-        <label>
-            Nama Petugas
-        </label>
+    <div class="input-row">
 
         <input
             type="text"
-            id="petugas"
-            value="Riyan"
-            placeholder="Nama petugas"
-        >
-
-
-        <!-- =============================================
-             ID ATLET
-             ============================================= -->
-
-        <label>
-            Nomor Registrasi / ID Atlet
-        </label>
-
-        <input
-            type="text"
-            id="athleteId"
-            placeholder="Contoh: CM-301C3D57"
+            id="idAtlet"
+            placeholder="Masukkan ID Atlet"
             autocomplete="off"
         >
 
-
         <button
-            class="btn-search"
-            onclick="lookupAthlete()"
+            class="btn-cari"
+            onclick="cariAtlet()"
         >
-            🔎 CARI ATLET
+            CARI
         </button>
 
+    </div>
 
-        <!-- =============================================
-             SCAN QR
-             ============================================= -->
+
+    <button
+        class="btn-scan"
+        onclick="mulaiScan()"
+    >
+        📷 SCAN QR
+    </button>
+
+
+    <div id="scannerContainer">
+
+        <div id="reader"></div>
 
         <button
-            class="btn-scan"
-            onclick="startScanner()"
+            onclick="stopScan()"
+            style="margin-top:10px;background:#dc2626;color:white;"
         >
-            📷 SCAN QR
+            TUTUP SCANNER
         </button>
 
-
-        <!-- =============================================
-             SCANNER
-             ============================================= -->
-
-        <div
-            id="scanner"
-            class="scanner"
-        >
-
-            <div id="reader"></div>
+    </div>
 
 
-            <button
-                class="btn-stop"
-                onclick="stopScanner()"
-            >
-                ✖ TUTUP SCANNER
-            </button>
+    <div
+        id="status"
+        class="status"
+    >
+        Silakan masukkan ID Atlet atau scan QR.
+    </div>
 
+
+    <!-- DATA -->
+    <div
+        id="dataBox"
+        class="data-box"
+    >
+
+        <div class="data-row">
+            <div class="data-label">ID Atlet</div>
+            <div
+                class="data-value"
+                id="viewId"
+            ></div>
         </div>
 
+        <div class="data-row">
+            <div class="data-label">Nama</div>
+            <div
+                class="data-value"
+                id="viewNama"
+            ></div>
+        </div>
 
-        <!-- =============================================
-             STATUS
-             ============================================= -->
+        <div class="data-row">
+            <div class="data-label">Kontingen</div>
+            <div
+                class="data-value"
+                id="viewKontingen"
+            ></div>
+        </div>
 
+        <div class="data-row">
+            <div class="data-label">Juara</div>
+            <div
+                class="data-value"
+                id="viewJuara"
+            ></div>
+        </div>
+
+        <div class="data-row">
+            <div class="data-label">Kategori</div>
+            <div
+                class="data-value"
+                id="viewKategori"
+            ></div>
+        </div>
+
+    </div>
+
+
+    <button
+        class="btn-print"
+        onclick="printPiagam()"
+    >
+        🖨️ PRINT PIAGAM
+    </button>
+
+</div>
+
+
+
+<!-- =======================================================
+     PREVIEW PIAGAM
+======================================================= -->
+
+<div class="preview-wrapper">
+
+    <div
+        class="piagam"
+        id="piagam"
+    >
+
+        <!-- NOMOR -->
         <div
-            id="status"
-            class="status"
+            class="text nomor"
+            id="txtNomor"
         ></div>
 
 
-        <!-- =============================================
-             DATA ATLET
-             ============================================= -->
-
+        <!-- NAMA -->
         <div
-            id="dataCard"
-            class="data-card"
-        >
+            class="text nama"
+            id="txtNama"
+        ></div>
 
 
-            <div class="data-row">
-
-                <div class="data-label">
-                    Nomor Registrasi
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dId"
-                >
-                    -
-                </div>
-
-            </div>
+        <!-- KONTINGEN -->
+        <div
+            class="text kontingen"
+            id="txtKontingen"
+        ></div>
 
 
-            <div class="data-row">
-
-                <div class="data-label">
-                    Nama
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dNama"
-                >
-                    -
-                </div>
-
-            </div>
+        <!-- JUARA -->
+        <div
+            class="text juara"
+            id="txtJuara"
+        ></div>
 
 
-            <div class="data-row">
-
-                <div class="data-label">
-                    Kontingen
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dKontingen"
-                >
-                    -
-                </div>
-
-            </div>
-
-
-            <div class="data-row">
-
-                <div class="data-label">
-                    Juara
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dJuara"
-                >
-                    -
-                </div>
-
-            </div>
-
-
-            <div class="data-row">
-
-                <div class="data-label">
-                    Kategori Berat
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dKategori"
-                >
-                    -
-                </div>
-
-            </div>
-
-
-            <div class="data-row">
-
-                <div class="data-label">
-                    Kategori Umur
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dUmur"
-                >
-                    -
-                </div>
-
-            </div>
-
-
-            <div class="data-row">
-
-                <div class="data-label">
-                    Jenis Kelamin
-                </div>
-
-                <div
-                    class="data-value"
-                    id="dGender"
-                >
-                    -
-                </div>
-
-            </div>
-
-
-            <button
-                class="btn-print"
-                onclick="printPiagam()"
-            >
-                🖨️ PRINT PIAGAM
-            </button>
-
-
-            <button
-                class="btn-next"
-                onclick="nextAthlete()"
-            >
-                ➡️ ATLET BERIKUTNYA
-            </button>
-
-
-        </div>
-
-
-        <div class="note">
-
-            Template piagam tetap menggunakan
-            background/kertas asli.
-
-            <br>
-
-            Website hanya mencetak data atlet
-            pada posisi yang sudah ditentukan.
-
-        </div>
-
+        <!-- KATEGORI -->
+        <div
+            class="text kategori"
+            id="txtKategori"
+        ></div>
 
     </div>
 
@@ -873,149 +518,240 @@ button:disabled {
 
 
 
-<!-- =====================================================
-     AREA PRINT
-     ===================================================== -->
+<!-- =======================================================
+     QR SCANNER LIBRARY
+======================================================= -->
 
-<div class="print-area">
-
-
-    <!-- =============================================
-         NOMOR REGISTRASI
-         ============================================= -->
-
-    <div
-        id="pNomor"
-        class="print-text print-nomor"
-    ></div>
-
-
-    <!-- =============================================
-         NAMA ATLET
-         ============================================= -->
-
-    <div
-        id="pNama"
-        class="print-text print-nama"
-    ></div>
-
-
-    <!-- =============================================
-         KONTINGEN
-         ============================================= -->
-
-    <div
-        id="pKontingen"
-        class="print-text print-kontingen"
-    ></div>
-
-
-    <!-- =============================================
-         JUARA
-         ============================================= -->
-
-    <div
-        id="pJuara"
-        class="print-text print-juara"
-    ></div>
-
-
-    <!-- =============================================
-         KATEGORI + UMUR + GENDER
-         ============================================= -->
-
-    <div
-        id="pKategori"
-        class="print-text print-kategori"
-    ></div>
-
-
-    <!-- Gender terpisah tidak digunakan -->
-
-    <div
-        id="pGender"
-        class="print-text print-gender"
-    ></div>
-
-
-</div>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 
 
 <script>
 
-/* =====================================================
-   API
-   ===================================================== */
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+
+/*
+   API APPS SCRIPT YANG SUDAH BERHASIL DIGUNAKAN
+*/
 
 const API =
-'https://script.google.com/macros/s/AKfycbz2Gqo1Yhud50ODwXcoQokzEi3cF484EiTSz9FPp9JhtSiHBRZybTYKvsQsavDqAUGtwQ/exec';
+'https://script.google.com/macros/s/AKfycbz2Gqo1Yhud500DwXcoQokzEi3cF484EiTSz9FPp9JhtSiHBRZybTYKvsQsavDqAUGtWQ/exec';
 
 
-/* =====================================================
-   GLOBAL
-   ===================================================== */
+/*
+   DEFAULT BACKGROUND
 
-let currentAthlete = null;
+   File harus berada satu folder dengan piagam.html
+*/
+
+const BACKGROUND = 'piagam.jpg';
+
+
+/* =========================================================
+   GLOBAL DATA
+========================================================= */
+
+let athleteData = null;
 
 let html5QrCode = null;
 
+let scannerRunning = false;
 
-/* =====================================================
+
+/* =========================================================
    STATUS
-   ===================================================== */
+========================================================= */
 
-function showStatus(message, type) {
+function setStatus(message, type = '') {
 
-    const status =
-        document.getElementById('status');
+    const el = document.getElementById('status');
 
-    status.className =
-        'status ' + type;
+    el.textContent = message;
 
-    status.textContent =
-        message;
+    el.className = 'status';
+
+    if (type) {
+        el.classList.add(type);
+    }
 
 }
 
 
-/* =====================================================
-   LOOKUP BERDASARKAN ID ATLET
-   ===================================================== */
+/* =========================================================
+   NORMALISASI ID
+========================================================= */
 
-async function lookupAthlete() {
+function normalisasiId(value) {
 
-    const id =
-        document
-            .getElementById('athleteId')
-            .value
-            .trim();
+    if (!value) return '';
+
+    value = String(value).trim();
+
+    /*
+       Jika QR langsung berisi:
+
+       CM-CC1EFFF7
+
+       langsung digunakan.
+    */
+
+    if (/^CM-/i.test(value)) {
+
+        return value;
+
+    }
+
+
+    /*
+       Jika QR berisi URL seperti:
+
+       https://arenajawara.id/verify/document/XXXXX
+
+       atau URL lainnya,
+
+       kita coba mencari ID Atlet.
+    */
+
+    try {
+
+        const url = new URL(value);
+
+        const params = url.searchParams;
+
+
+        /*
+           Coba parameter ID
+        */
+
+        const kemungkinan = [
+
+            params.get('id'),
+
+            params.get('idAtlet'),
+
+            params.get('ID_Atlet'),
+
+            params.get('athlete'),
+
+            params.get('code')
+
+        ];
+
+
+        for (const item of kemungkinan) {
+
+            if (
+                item &&
+                /^CM-/i.test(item)
+            ) {
+
+                return item.trim();
+
+            }
+
+        }
+
+
+        /*
+           Coba mencari CM-XXXXXXXX
+           di seluruh URL
+        */
+
+        const match = value.match(
+            /CM-[A-Z0-9]+/i
+        );
+
+        if (match) {
+
+            return match[0];
+
+        }
+
+    } catch (error) {
+
+        /*
+           Bukan URL.
+        */
+
+    }
+
+
+    /*
+       Terakhir cari pola CM-
+    */
+
+    const match = value.match(
+        /CM-[A-Z0-9]+/i
+    );
+
+    if (match) {
+
+        return match[0];
+
+    }
+
+
+    /*
+       Jika tidak ditemukan,
+       kembalikan nilai asli.
+    */
+
+    return value;
+
+}
+
+
+/* =========================================================
+   CARI ATLET
+========================================================= */
+
+async function cariAtlet(idOverride = null) {
+
+    let id =
+        idOverride ||
+        document.getElementById('idAtlet').value.trim();
 
 
     if (!id) {
 
-        showStatus(
-            'Masukkan Nomor Registrasi / ID Atlet.',
+        setStatus(
+            'Masukkan ID Atlet terlebih dahulu.',
             'error'
         );
 
         return;
+
     }
 
 
-    showStatus(
+    /*
+       NORMALISASI
+    */
+
+    id = normalisasiId(id);
+
+
+    /*
+       Tampilkan ID yang sudah dinormalisasi
+    */
+
+    document.getElementById('idAtlet').value = id;
+
+
+    setStatus(
         '⏳ Mengambil data atlet...',
-        'info'
+        ''
     );
 
 
-    document
-        .getElementById('dataCard')
-        .style.display =
-            'none';
-
-
     try {
+
+        /*
+           Endpoint lookup
+        */
 
         const url =
             API +
@@ -1047,54 +783,46 @@ async function lookupAthlete() {
 
 
         console.log(
-            'API RESPONSE:',
+            'RESPON API:',
             data
         );
 
 
-        if (!data.success) {
+        if (
+            !data ||
+            data.success !== true ||
+            !data.athlete
+        ) {
 
             throw new Error(
-                data.error ||
+                data?.error ||
                 'Data atlet tidak ditemukan.'
             );
 
         }
 
 
-        if (!data.athlete) {
-
-            throw new Error(
-                'Data atlet kosong.'
-            );
-
-        }
-
-
-        currentAthlete =
+        athleteData =
             data.athlete;
 
 
-        displayAthlete(
-            currentAthlete
+        tampilkanData(
+            athleteData
         );
 
 
-        showStatus(
-            '✅ Data atlet ditemukan.',
+        setStatus(
+            '✅ Data atlet berhasil ditemukan.',
             'success'
         );
 
 
     } catch (error) {
 
-        console.error(
-            'LOOKUP ERROR:',
-            error
-        );
+        console.error(error);
 
 
-        showStatus(
+        setStatus(
             '❌ Gagal mengambil data: ' +
             error.message,
             'error'
@@ -1105,253 +833,421 @@ async function lookupAthlete() {
 }
 
 
-/* =====================================================
-   DISPLAY DATA ATLET
-   ===================================================== */
+/* =========================================================
+   TAMPILKAN DATA
+========================================================= */
 
-function displayAthlete(a) {
+function tampilkanData(data) {
 
 
     /*
-       NOMOR REGISTRASI
+       Ambil ID
     */
 
     const id =
-        a.idAtlet ||
-        a.nomorRegistrasi ||
-        a.id ||
+        data.idAtlet ||
+        data.ID_Atlet ||
+        data.id ||
         '';
 
 
     /*
-       NAMA
+       Ambil nama
     */
 
     const nama =
-        a.nama ||
+        data.nama ||
+        data.namaAtlet ||
+        data.Nama ||
         '';
 
 
     /*
-       KONTINGEN
+       Kontingen
     */
 
     const kontingen =
-        a.kontingen ||
+        data.kontingen ||
+        data.Kontingen ||
         '';
 
 
     /*
+       Juara
+
+       Bisa berupa:
+
+       JUARA 1
+       JUARA 2
+       JUARA 3
        JUARA
     */
 
-    const juara =
-        a.statusJuara ||
-        a.juara ||
-        a.medali ||
+    let juara =
+        data.juara ||
+        data.statusJuara ||
+        data.medali ||
         '';
 
 
     /*
-       KATEGORI BERAT
+       Kalau data berupa angka
     */
 
-    const kategori =
-        a.kategoriBerat ||
-        a.kategori ||
-        '';
+    if (
+        juara !== '' &&
+        !isNaN(juara)
+    ) {
 
-
-    /*
-       KATEGORI UMUR
-
-       Diambil dari:
-       kategoriUmur
-       atau umur
-       atau kategoriUsia
-
-       Code.gs harus mengirimkan
-       kategori umur dari kolom U.
-    */
-
-    const umur =
-        a.kategoriUmur ||
-        a.umur ||
-        a.kategoriUsia ||
-        '';
-
-
-    /*
-       JENIS KELAMIN
-    */
-
-    const gender =
-        a.jenisKelamin ||
-        a.gender ||
-        '';
-
-
-    /* =================================================
-       TAMPILKAN KE LAYAR
-       ================================================= */
-
-    document
-        .getElementById('dId')
-        .textContent =
-            id || '-';
-
-
-    document
-        .getElementById('dNama')
-        .textContent =
-            nama || '-';
-
-
-    document
-        .getElementById('dKontingen')
-        .textContent =
-            kontingen || '-';
-
-
-    document
-        .getElementById('dJuara')
-        .textContent =
-            juara || '-';
-
-
-    document
-        .getElementById('dKategori')
-        .textContent =
-            kategori || '-';
-
-
-    document
-        .getElementById('dUmur')
-        .textContent =
-            umur || '-';
-
-
-    document
-        .getElementById('dGender')
-        .textContent =
-            gender || '-';
-
-
-    document
-        .getElementById('dataCard')
-        .style.display =
-            'block';
-
-
-    /* =================================================
-       DATA UNTUK PRINT
-       ================================================= */
-
-
-    /*
-       NOMOR
-    */
-
-    document
-        .getElementById('pNomor')
-        .textContent =
-            a.nomorSertifikat ||
-            a.nomorRegistrasi ||
-            id;
-
-
-    /*
-       NAMA
-    */
-
-    document
-        .getElementById('pNama')
-        .textContent =
-            nama;
-
-
-    /*
-       KONTINGEN
-    */
-
-    document
-        .getElementById('pKontingen')
-        .textContent =
-            kontingen;
-
-
-    /*
-       JUARA
-    */
-
-    document
-        .getElementById('pJuara')
-        .textContent =
+        juara =
+            'JUARA ' +
             juara;
 
-
-    /*
-       KATEGORI:
-
-       BERAT + SPACE +
-       UMUR + SPACE +
-       GENDER
-    */
-
-    const kategoriPrint =
-        [
-            kategori,
-            umur,
-            gender
-        ]
-        .filter(
-            value =>
-                value !== null &&
-                value !== undefined &&
-                String(value).trim() !== ''
-        )
-        .join(' ');
-
-
-    document
-        .getElementById('pKategori')
-        .textContent =
-            kategoriPrint;
-
-
-    /*
-       Gender tidak dicetak
-       sebagai field terpisah.
-    */
-
-    document
-        .getElementById('pGender')
-        .textContent =
-            '';
-
-}
-
-
-/* =====================================================
-   PRINT PIAGAM
-   ===================================================== */
-
-function printPiagam() {
-
-
-    if (!currentAthlete) {
-
-        showStatus(
-            'Belum ada data atlet.',
-            'error'
-        );
-
-        return;
     }
 
 
     /*
-       Print langsung.
+       Jika status juara masih belum
+       tetapi ada field medali,
+       gunakan medali.
+
+       Contoh:
+
+       GOLD
+       SILVER
+       BRONZE
+    */
+
+
+    /*
+       KATEGORI
+    */
+
+    const kategoriBerat =
+        data.kategoriBerat ||
+        data.kategori ||
+        data.Kategori ||
+        '';
+
+
+    const kategoriUmur =
+        data.kategoriUmur ||
+        data.umurKategori ||
+        data.ageCategory ||
+        '';
+
+
+    const jenisKelamin =
+        data.jenisKelamin ||
+        data.gender ||
+        data.JenisKelamin ||
+        '';
+
+
+    /*
+       Gabungkan:
+
+       Kategori Berat
+       [SPACE]
+       Kategori Umur
+       [SPACE]
+       Jenis Kelamin
+
+       Contoh:
+
+       UNDER 24 PRACADET PUTRA
+    */
+
+    const kategoriGabungan =
+        [
+            kategoriBerat,
+            kategoriUmur,
+            jenisKelamin
+        ]
+        .filter(Boolean)
+        .join(' ');
+
+
+    /*
+       NOMOR SERTIFIKAT
+
+       Jika tersedia nomor sertifikat,
+       gunakan itu.
+
+       Kalau belum tersedia,
+       gunakan ID Atlet.
+    */
+
+    const nomor =
+        data.nomorSertifikat ||
+        data.nomorRegistrasi ||
+        id;
+
+
+    /* =====================================================
+       MASUKKAN KE PREVIEW
+    ===================================================== */
+
+    document.getElementById(
+        'txtNomor'
+    ).textContent = nomor;
+
+
+    document.getElementById(
+        'txtNama'
+    ).textContent = nama;
+
+
+    document.getElementById(
+        'txtKontingen'
+    ).textContent = kontingen;
+
+
+    document.getElementById(
+        'txtJuara'
+    ).textContent = juara;
+
+
+    document.getElementById(
+        'txtKategori'
+    ).textContent =
+        kategoriGabungan;
+
+
+    /* =====================================================
+       DATA PANEL
+    ===================================================== */
+
+    document.getElementById(
+        'viewId'
+    ).textContent = id;
+
+
+    document.getElementById(
+        'viewNama'
+    ).textContent = nama;
+
+
+    document.getElementById(
+        'viewKontingen'
+    ).textContent = kontingen;
+
+
+    document.getElementById(
+        'viewJuara'
+    ).textContent = juara;
+
+
+    document.getElementById(
+        'viewKategori'
+    ).textContent =
+        kategoriGabungan;
+
+
+    document.getElementById(
+        'dataBox'
+    ).style.display = 'block';
+
+}
+
+
+/* =========================================================
+   SCANNER
+========================================================= */
+
+function mulaiScan() {
+
+    const container =
+        document.getElementById(
+            'scannerContainer'
+        );
+
+
+    container.style.display =
+        'block';
+
+
+    if (scannerRunning) {
+
+        return;
+
+    }
+
+
+    html5QrCode =
+        new Html5Qrcode(
+            'reader'
+        );
+
+
+    const config = {
+
+        fps: 10,
+
+        qrbox: {
+            width: 250,
+            height: 250
+        },
+
+        aspectRatio: 1.0
+
+    };
+
+
+    html5QrCode
+        .start(
+
+            {
+                facingMode: 'environment'
+            },
+
+            config,
+
+            async (decodedText) => {
+
+                console.log(
+                    'QR TERBACA:',
+                    decodedText
+                );
+
+
+                /*
+                   STOP SCANNER
+                */
+
+                await stopScan();
+
+
+                /*
+                   QR bisa berupa:
+
+                   CM-CC1EFFF7
+
+                   ATAU
+
+                   https://....
+
+                   normalisasi akan
+                   mengambil CM-...
+                */
+
+                const id =
+                    normalisasiId(
+                        decodedText
+                    );
+
+
+                document.getElementById(
+                    'idAtlet'
+                ).value = id;
+
+
+                /*
+                   Cari data
+                */
+
+                await cariAtlet(id);
+
+            },
+
+            (errorMessage) => {
+
+                /*
+                   Error scanning normal
+                   tidak perlu ditampilkan.
+                */
+
+            }
+
+        )
+        .then(() => {
+
+            scannerRunning = true;
+
+            setStatus(
+                '📷 Kamera aktif. Arahkan kamera ke QR Atlet.'
+            );
+
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            setStatus(
+                '❌ Kamera tidak dapat dibuka: ' +
+                error,
+                'error'
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   STOP SCANNER
+========================================================= */
+
+async function stopScan() {
+
+    if (
+        html5QrCode &&
+        scannerRunning
+    ) {
+
+        try {
+
+            await html5QrCode.stop();
+
+        } catch (error) {
+
+            console.warn(
+                'Scanner stop:',
+                error
+            );
+
+        }
+
+
+        try {
+
+            html5QrCode.clear();
+
+        } catch (error) {}
+
+    }
+
+
+    scannerRunning = false;
+
+
+    document.getElementById(
+        'scannerContainer'
+    ).style.display = 'none';
+
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+function printPiagam() {
+
+    if (!athleteData) {
+
+        setStatus(
+            '❌ Belum ada data atlet yang dipilih.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Print langsung
     */
 
     window.print();
@@ -1359,288 +1255,12 @@ function printPiagam() {
 }
 
 
-/* =====================================================
-   ATLET BERIKUTNYA
-   ===================================================== */
-
-function nextAthlete() {
-
-
-    currentAthlete =
-        null;
-
-
-    document
-        .getElementById('athleteId')
-        .value =
-            '';
-
-
-    document
-        .getElementById('dataCard')
-        .style.display =
-            'none';
-
-
-    document
-        .getElementById('status')
-        .className =
-            'status';
-
-
-    document
-        .getElementById('status')
-        .textContent =
-            '';
-
-
-    document
-        .getElementById('athleteId')
-        .focus();
-
-}
-
-
-/* =====================================================
-   START QR SCANNER
-   ===================================================== */
-
-function startScanner() {
-
-
-    document
-        .getElementById('scanner')
-        .style.display =
-            'block';
-
-
-    showStatus(
-        '📷 Arahkan kamera ke QR Code ID Card.',
-        'info'
-    );
-
-
-    if (!html5QrCode) {
-
-        html5QrCode =
-            new Html5Qrcode(
-                'reader'
-            );
-
-    }
-
-
-    html5QrCode.start(
-
-        {
-            facingMode:
-                'environment'
-        },
-
-        {
-            fps: 10,
-
-            qrbox: {
-                width: 250,
-                height: 250
-            }
-        },
-
-
-        /*
-           QR BERHASIL TERBACA
-        */
-
-        async function(decodedText) {
-
-
-            console.log(
-                'QR TERBACA:',
-                decodedText
-            );
-
-
-            await stopScanner();
-
-
-            showStatus(
-                '⏳ QR terbaca. Mencari data atlet...',
-                'info'
-            );
-
-
-            try {
-
-
-                /*
-                   QR ID CARD berisi QR URL.
-
-                   Kirim nilai QR tersebut
-                   ke Apps Script.
-                */
-
-                const url =
-                    API +
-                    '?action=lookup&qr=' +
-                    encodeURIComponent(
-                        decodedText
-                    );
-
-
-                const response =
-                    await fetch(
-                        url,
-                        {
-                            method: 'GET',
-                            cache: 'no-store'
-                        }
-                    );
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        'HTTP ' +
-                        response.status
-                    );
-
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                console.log(
-                    'QR API RESPONSE:',
-                    data
-                );
-
-
-                if (
-                    !data.success ||
-                    !data.athlete
-                ) {
-
-                    throw new Error(
-                        data.error ||
-                        'QR tidak ditemukan di database.'
-                    );
-
-                }
-
-
-                currentAthlete =
-                    data.athlete;
-
-
-                displayAthlete(
-                    currentAthlete
-                );
-
-
-                showStatus(
-                    '✅ QR berhasil. Data atlet ditemukan.',
-                    'success'
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    'QR LOOKUP ERROR:',
-                    error
-                );
-
-
-                showStatus(
-                    '❌ QR terbaca, tetapi data tidak ditemukan: ' +
-                    error.message,
-                    'error'
-                );
-
-            }
-
-        },
-
-
-        /*
-           Error pembacaan frame
-           sengaja tidak ditampilkan.
-        */
-
-        function(errorMessage) {
-
-        }
-
-    ).catch(
-
-        function(error) {
-
-            console.error(
-                'CAMERA ERROR:',
-                error
-            );
-
-
-            showStatus(
-                '❌ Kamera tidak dapat digunakan: ' +
-                error,
-                'error'
-            );
-
-        }
-
-    );
-
-}
-
-
-/* =====================================================
-   STOP QR SCANNER
-   ===================================================== */
-
-async function stopScanner() {
-
-
-    if (html5QrCode) {
-
-        try {
-
-            await html5QrCode.stop();
-
-            html5QrCode.clear();
-
-        } catch (error) {
-
-            console.log(
-                'STOP SCANNER:',
-                error
-            );
-
-        }
-
-
-        html5QrCode =
-            null;
-
-    }
-
-
-    document
-        .getElementById('scanner')
-        .style.display =
-            'none';
-
-}
-
-
-/* =====================================================
+/* =========================================================
    ENTER = CARI
-   ===================================================== */
+========================================================= */
 
 document
-    .getElementById('athleteId')
+    .getElementById('idAtlet')
     .addEventListener(
         'keydown',
         function(event) {
@@ -1649,16 +1269,26 @@ document
                 event.key === 'Enter'
             ) {
 
-                lookupAthlete();
+                cariAtlet();
 
             }
 
         }
     );
 
+
+/* =========================================================
+   PRELOAD BACKGROUND
+========================================================= */
+
+const bg =
+    new Image();
+
+bg.src =
+    BACKGROUND;
+
+
 </script>
 
-
 </body>
-
 </html>
